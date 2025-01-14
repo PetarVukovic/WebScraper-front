@@ -15,7 +15,7 @@ export default defineConfig({
     exclude: ["lucide-react"],
   },
   build: {
-    outDir: "dist", // Ensure the build output is in the `dist` directory
+    outDir: "src/dist", // Ensure the build output is in the `dist` directory
     sourcemap: true,
   },
 });
