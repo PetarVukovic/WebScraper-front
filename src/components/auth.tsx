@@ -25,12 +25,26 @@ export const Auth = observer(() => {
     emailRef.current?.focus();
   }, [isLogin]);
 
+  const allowedEmails = [
+    "david.nordin@m-tab.se",
+    "gustav.lysell@m-tab.se",
+    "marcus.pettersson@m-tab.se",
+    "petar.vukovic@formify.eu",
+    "tommy.anzelius@m-tab.se",
+    "david.nordin@formify.se",
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     authStore.error = null;
 
     if (!email.trim() || !password.trim()) {
       setErrorMessage("Email and password are required");
+      return;
+    }
+
+    if (!allowedEmails.includes(email.trim())) {
+      setErrorMessage("You are not in Formify space");
       return;
     }
 
