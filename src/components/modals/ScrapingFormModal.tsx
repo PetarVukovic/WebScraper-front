@@ -35,10 +35,7 @@ export const ScrapingFormModal: React.FC<{
 
     setScrapingParams({
       ...scrapingParams,
-      [fieldName]: inputValue
-        .split(",") // Razdvajanje prema zarezima
-        .map((item) => item.trim()) // Uklanjanje nepotrebnih razmaka
-        .filter(Boolean), // Uklanjanje praznih elemenata
+      [fieldName]: inputValue.split(","), // Razdvajanje prema zarezima
     });
   };
   const handleSave = async (e: React.FormEvent) => {
