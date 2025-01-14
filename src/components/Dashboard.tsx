@@ -48,7 +48,7 @@ export const Dashboard: React.FC = observer(() => {
 
   useEffect(() => {
     loadProjects();
-  }, [loadProjects]); // Added loadProjects to dependency array
+  }, [loadProjects]);
 
   return (
     <div className="ml-64 p-6">
@@ -61,6 +61,40 @@ export const Dashboard: React.FC = observer(() => {
           Manage your scraping projects efficiently and effortlessly. Start
           creating your first project or explore existing ones! 🛠️
         </p>
+
+        <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+          <h3 className="text-lg font-semibold mb-2">📘 How to Use the App</h3>
+          <ol className="list-decimal list-inside text-gray-700 space-y-2">
+            <li>
+              <strong>Create a New Project:</strong> Add a description for your
+              project, e.g., scraping a city or country. 🌍
+            </li>
+            <li>
+              <strong>Set Up Your AI Agent:</strong> Use the sidebar to
+              configure an email template prompt for generating personalized
+              emails. 📧
+            </li>
+            <li>
+              <strong>Add a Row for Scraping:</strong> Choose between scraping
+              an entire country (time-consuming, less accurate) or a city within
+              a country. Currently, only European countries are supported. 🇪🇺
+            </li>
+            <li>
+              <strong>Start Scraping:</strong> Click on the row in the project
+              and initiate scraping. This process takes 5–15 minutes depending
+              on the parameters. ⏳
+            </li>
+            <li>
+              <strong>View Results:</strong> Once scraping is complete, you'll
+              see a "Scraping Finished" message. Click "Show Companies" to view
+              the scraped companies. 🏢
+            </li>
+            <li>
+              <strong>Automated Workflow:</strong> The n8n workflow processes
+              scraped data and sends personalized emails automatically. 🔄
+            </li>
+          </ol>
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center">

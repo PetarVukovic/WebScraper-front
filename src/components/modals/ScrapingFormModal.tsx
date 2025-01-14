@@ -132,15 +132,16 @@ export const ScrapingFormModal: React.FC<{
             </label>
             <input
               type="number"
-              value={scrapingParams.maxCrawledPlacesPerSearch}
-              onChange={(e) =>
+              defaultValue={9999999} // Postavlja defaultnu vrijednost
+              onBlur={(e) => {
+                const value = Number(e.target.value);
                 setScrapingParams({
                   ...scrapingParams,
-                  maxCrawledPlacesPerSearch: Number(e.target.value),
-                })
-              }
+                  maxCrawledPlacesPerSearch: value > 0 ? value : 9999999, // Osigurava valjanost broja
+                });
+              }}
               className="mt-1 block w-full p-2 border rounded"
-              min="1"
+              min="1" // Ograničava minimalni unos
               required
             />
           </div>
