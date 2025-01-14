@@ -1,0 +1,25 @@
+# Faza: Build
+FROM node:22.9.0 AS build
+
+# Postavi radni direktorijum
+WORKDIR /app
+
+# Kopiraj package fajlove i instaliraj zavisnosti
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Kopiraj ostatak projekta i napravi build
+COPY . .
+RUN npm run build
+
+# Faza: Serviranje
+FROM nginx:alpine
+
+# Kopiraj build iz prethodne faze u nginx direktorijum
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Ekspozicija porta
+EXPOSE 80
+
+# Pokreni nginx
+CMD ["nginx", "-g", "daemon off;"]
