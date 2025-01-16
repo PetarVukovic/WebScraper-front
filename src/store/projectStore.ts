@@ -79,9 +79,6 @@ class ProjectStore {
     }
   }
 
-  /**
-   * Brisanje projekta
-   */
   deleteProject = async (projectId: number) => {
     this.deleteLoading = true;
     this.error = null;
@@ -91,6 +88,7 @@ class ProjectStore {
       console.log("[deleteProject] Successfully deleted project:", projectId);
       runInAction(() => {
         this.projects = this.projects.filter((proj) => proj.id !== projectId);
+        console.log(this.projects);
         if (this.selectedProject?.id === projectId) {
           this.selectedProject =
             this.projects.length > 0

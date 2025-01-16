@@ -9,9 +9,7 @@ export const ScrapingFormModal: React.FC<{
   initialData?: SearchHistoryResponse | null;
 }> = observer(({ initialData }) => {
   const { searchHistoryStore, projectStore, uiStore } = useRootStore();
-  const [searchMode, setSearchMode] = useState<"country" | "city" | "location">(
-    "city"
-  );
+  const [searchMode, setSearchMode] = useState<"country" | "city">("city");
   const [scrapingParams, setScrapingParams] = useState<SearchHistoryCreate>({
     city: initialData?.city || "",
     countryCode: initialData?.countryCode || "",
@@ -23,22 +21,34 @@ export const ScrapingFormModal: React.FC<{
   });
 
   useEffect(() => {
-    if (initialData?.locationQuery) {
-      setSearchMode("location");
-    } else if (initialData?.city && initialData?.countryCode) {
+    if (initialData?.city && initialData?.countryCode) {
       setSearchMode("city");
     } else if (initialData?.countryCode && !initialData?.city) {
       setSearchMode("country");
     }
   }, [initialData]);
-  const handleInputChange = (e, fieldName: string) => {
-    const inputValue = e.target.value;
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string
+  ) => {
+    const inputValue = e.target.value;
     setScrapingParams({
       ...scrapingParams,
-      [fieldName]: inputValue.split(","), // Razdvajanje prema zarezima
+      [fieldName]: inputValue.split(",").map((item) => item.trim()),
     });
   };
+
+  const handleSearchModeChange = (newMode: "country" | "city") => {
+    setSearchMode(newMode);
+    // Preserve existing values when switching modes
+    setScrapingParams((prev) => ({
+      ...prev,
+      city: newMode === "city" ? prev.city : "",
+      countryCode: newMode === "city" ? "" : prev.countryCode,
+    }));
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -48,7 +58,6 @@ export const ScrapingFormModal: React.FC<{
       countryCode: scrapingParams.countryCode || undefined,
       locationQuery: scrapingParams.locationQuery || undefined,
     };
-    console.log(params);
 
     // Ensure arrays are initialized even if empty
     params.searchStringsArray = params.searchStringsArray || [];
@@ -60,14 +69,19 @@ export const ScrapingFormModal: React.FC<{
         alert("Country is required for country-wide search.");
         return;
       }
-      params.city = ""; // Clear city for country-wide search
-      params.locationQuery = ""; // Clear location query
+      params.city = "";
+      params.locationQuery = "";
+    } else if (searchMode === "city") {
+      if (!params.city || !params.countryCode) {
+        alert("Both city and country are required for city search.");
+        return;
+      }
+      params.locationQuery = "";
     } else if (searchMode === "location") {
       if (!params.locationQuery) {
         alert("Location query is required (format: City,Country).");
         return;
       }
-      // Clear city and country when using location query
       params.city = "";
       params.countryCode = "";
     }
@@ -118,10 +132,20 @@ export const ScrapingFormModal: React.FC<{
                   type="radio"
                   value="country"
                   checked={searchMode === "country"}
-                  onChange={(e) => setSearchMode("country")}
+                  onChange={() => handleSearchModeChange("country")}
                   className="mr-2"
                 />
                 Country-wide
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="city"
+                  checked={searchMode === "city"}
+                  onChange={() => handleSearchModeChange("city")}
+                  className="mr-2"
+                />
+                City
               </label>
             </div>
           </div>
@@ -133,61 +157,41 @@ export const ScrapingFormModal: React.FC<{
             </label>
             <input
               type="number"
-              defaultValue={9999999} // Postavlja defaultnu vrijednost
+              defaultValue={9999999}
               onBlur={(e) => {
                 const value = Number(e.target.value);
                 setScrapingParams({
                   ...scrapingParams,
-                  maxCrawledPlacesPerSearch: value > 0 ? value : 9999999, // Osigurava valjanost broja
+                  maxCrawledPlacesPerSearch: value > 0 ? value : 9999999,
                 });
               }}
               className="mt-1 block w-full p-2 border rounded"
-              min="1" // Ograničava minimalni unos
+              min="1"
               required
             />
           </div>
 
-          {/* Location Inputs based on mode */}
-          {searchMode === "location" ? (
-            <div>
-              <label className="block text-sm font-medium">
-                Location Query
-              </label>
-              <input
-                type="text"
-                value={scrapingParams.locationQuery}
-                onChange={(e) =>
-                  setScrapingParams({
-                    ...scrapingParams,
-                    locationQuery: e.target.value,
-                  })
-                }
-                className="mt-1 block w-full p-2 border rounded"
-                placeholder="e.g., Berlin,Germany"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">Format: City,Country</p>
-            </div>
-          ) : (
-            <>
-              {searchMode === "city" && (
-                <div>
-                  <label className="block text-sm font-medium">City</label>
-                  <input
-                    type="text"
-                    value={scrapingParams.city}
-                    onChange={(e) =>
-                      setScrapingParams({
-                        ...scrapingParams,
-                        city: e.target.value,
-                      })
-                    }
-                    className="mt-1 block w-full p-2 border rounded"
-                    placeholder="e.g., Berlin"
-                    required={searchMode === "city"}
-                  />
-                </div>
-              )}
+          {/* Search Parameters */}
+          <>
+            {searchMode === "city" && (
+              <div>
+                <label className="block text-sm font-medium">City</label>
+                <input
+                  type="text"
+                  value={scrapingParams.city}
+                  onChange={(e) =>
+                    setScrapingParams({
+                      ...scrapingParams,
+                      city: e.target.value,
+                    })
+                  }
+                  className="mt-1 block w-full p-2 border rounded"
+                  placeholder="e.g., Berlin"
+                  required
+                />
+              </div>
+            )}
+            {(searchMode === "city" || searchMode === "country") && (
               <div>
                 <label className="block text-sm font-medium">Country</label>
                 <input
@@ -204,8 +208,8 @@ export const ScrapingFormModal: React.FC<{
                   required
                 />
               </div>
-            </>
-          )}
+            )}
+          </>
 
           <div>
             <label className="block text-sm font-medium">Search Keywords</label>
@@ -234,25 +238,8 @@ export const ScrapingFormModal: React.FC<{
                 });
               }}
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Hold <code>Ctrl</code> (or <code>Cmd</code> on Mac) to select
-              multiple options.
-            </p>
-
-            {/* Prikaz odabranih kategorija */}
-            {scrapingParams.categoryFilterWords!.length > 0 && (
-              <div className="flex flex-wrap mt-2">
-                {scrapingParams.categoryFilterWords?.map((category, index) => (
-                  <span
-                    key={index}
-                    className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded mr-2 mb-2"
-                  >
-                    {category}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
+
           {/* Form Actions */}
           <div className="flex justify-end gap-4 mt-6">
             <button
