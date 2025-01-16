@@ -1,43 +1,44 @@
-// types/index.ts
-export interface PromptInput {
-  prompt: string;
-  project_id: number;
-}
-
-export interface PromptOutput extends PromptInput {
-  id: number;
-  created_at: Date;
-}
-
-// store/aiAgentStore.ts
 import { makeAutoObservable, runInAction } from "mobx";
 import { upsertAiAgent, fetchPromptByProjectId } from "../api/ai_agent_api";
+import { PromptInput } from "../types";
 
 class AIAgentStore {
   promptInput: PromptInput = {
-    prompt: "",
+    email_prompt: "",
+    qualification_prompt: "",
     project_id: 0,
   };
+
   isGenerating: boolean = false;
   error: string | null = null;
 
   constructor() {
     makeAutoObservable(this);
   }
+
   async fetchPrompt(projectId: number) {
     try {
       const response = await fetchPromptByProjectId(projectId);
       if (response === null) {
-        // No prompt exists yet
-        return "";
+        return {
+          email_prompt: "",
+          qualification_prompt: "",
+        };
       }
-      return response;
+      return {
+        ...response,
+        email_prompt: response.prompt,
+        qualification_prompt: response.prompt_qualification,
+      };
     } catch (error) {
-      console.error("Error fetching prompt:", error);
+      console.error("Error fetching prompts:", error);
       runInAction(() => {
-        this.error = "Failed to fetch prompt. Please try again later.";
+        this.error = "Failed to fetch prompts. Please try again later.";
       });
-      return ""; // Return empty string on error
+      return {
+        email_prompt: "",
+        qualification_prompt: "",
+      };
     }
   }
 
@@ -46,6 +47,7 @@ class AIAgentStore {
       this.error = "Project ID is required";
       return;
     }
+    console.log("[makeNewPrompt] promptInput:", promptInput);
 
     this.isGenerating = true;
     this.error = null;
@@ -59,7 +61,7 @@ class AIAgentStore {
       return response;
     } catch (error) {
       runInAction(() => {
-        this.error = "Failed to save prompt. Please try again later.";
+        this.error = "Failed to save prompts. Please try again later.";
         this.isGenerating = false;
       });
       throw error;

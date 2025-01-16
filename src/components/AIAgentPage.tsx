@@ -2,33 +2,83 @@ import React, { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { useRootStore } from "../store/RootStoreContext";
 import { Settings2, MessageSquare, Mail, RefreshCw } from "lucide-react";
-import { PromptInput } from "../store/aiAgentStore";
 import { Spinner } from "./Spinner";
 import SuccessModal from "./modals/SuccessModal";
 import ErrorModal from "./modals/ErrorModal";
 
+// Prilagodi ovaj import prema tvom PromptInput tipu
+import { PromptInput } from "../types";
+// ili umesto "../types" importaj točno odakle dolazi tvoj PromptInput
+// npr: import { PromptInput } from "../store/aiAgentStore";
+
 const AIAgentPage: React.FC = observer(() => {
   const { aiAgentStore, projectStore } = useRootStore();
+
+  // Pamtimo koji je tab aktivan: configure, test ili generate
   const [activeTab, setActiveTab] = useState<"configure" | "test" | "generate">(
     "configure"
   );
+
+  // PromptInput s poljima za email i qualification, plus project_id
   const [promptInput, setPromptInput] = useState<PromptInput>({
-    prompt: "",
+    email_prompt: "",
+    qualification_prompt: "",
     project_id: 0,
   });
+
+  // Poruka o uspjehu
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Load projects when component mounts
+  // Učitavamo liste projekata pri mountu
   useEffect(() => {
     if (projectStore.projects.length === 0) {
       projectStore.loadProjects();
     }
   }, [projectStore]);
 
-  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  // Kad promijenimo project_id, učitaj postojeće promptove za odabrani projekt
+  useEffect(() => {
+    const loadPrompt = async () => {
+      if (promptInput.project_id) {
+        const promptData = await aiAgentStore.fetchPrompt(
+          promptInput.project_id
+        );
+        console.log("[loadPrompt] Prompt data:", promptData);
+        if (promptData) {
+          setPromptInput((prev) => ({
+            ...prev,
+            email_prompt: promptData.email_prompt,
+            qualification_prompt: promptData.qualification_prompt,
+          }));
+        } else {
+          // Ako nema zapisa, očistimo prompt polja
+          setPromptInput((prev) => ({
+            ...prev,
+            email_prompt: "",
+            qualification_prompt: "",
+          }));
+        }
+      }
+    };
+    loadPrompt();
+  }, [promptInput.project_id, aiAgentStore]);
+
+  // Handleri za polja
+  const handleEmailPromptChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     setPromptInput((prev) => ({
       ...prev,
-      prompt: e.target.value,
+      email_prompt: e.target.value,
+    }));
+  };
+
+  const handleQualificationPromptChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setPromptInput((prev) => ({
+      ...prev,
+      qualification_prompt: e.target.value,
     }));
   };
 
@@ -39,49 +89,27 @@ const AIAgentPage: React.FC = observer(() => {
     }));
   };
 
+  // Spremi promptove (Update ili Insert)
   const handleSubmit = async () => {
     if (!promptInput.project_id) {
       aiAgentStore.error = "Please select a project first";
       return;
     }
-
     try {
       await aiAgentStore.makeNewPrompt(promptInput);
-      setSuccessMessage("Prompt saved successfully");
+      setSuccessMessage("Prompts saved successfully!");
     } catch (error) {
-      console.error("Failed to save prompt:", error);
+      console.error("Failed to save prompts:", error);
     }
   };
 
+  // Zatvaranje modala
   const handleErrorClose = () => {
     aiAgentStore.error = null;
   };
-
   const handleSuccessClose = () => {
     setSuccessMessage(null);
   };
-
-  useEffect(() => {
-    const loadPrompt = async () => {
-      if (promptInput.project_id) {
-        const promptData = await aiAgentStore.fetchPrompt(
-          promptInput.project_id
-        );
-        if (promptData) {
-          setPromptInput((prev) => ({
-            ...prev,
-            prompt: promptData,
-          }));
-        } else {
-          setPromptInput((prev) => ({
-            ...prev,
-            prompt: "",
-          }));
-        }
-      }
-    };
-    loadPrompt();
-  }, [promptInput.project_id]);
 
   return (
     <div className="relative min-h-screen bg-gray-50 ml-64">
@@ -123,6 +151,7 @@ const AIAgentPage: React.FC = observer(() => {
                 <Settings2 className="w-5 h-5" />
                 <span>Configure</span>
               </button>
+
               <button
                 onClick={() => setActiveTab("test")}
                 className={`w-full px-4 py-2 rounded-lg flex items-center space-x-2 ${
@@ -134,6 +163,7 @@ const AIAgentPage: React.FC = observer(() => {
                 <MessageSquare className="w-5 h-5" />
                 <span>Test</span>
               </button>
+
               <button
                 onClick={() => setActiveTab("generate")}
                 className={`w-full px-4 py-2 rounded-lg flex items-center space-x-2 ${
@@ -150,13 +180,14 @@ const AIAgentPage: React.FC = observer(() => {
 
           {/* Main Content Area */}
           <div className="col-span-10">
+            {/* CONFIGURE TAB */}
             {activeTab === "configure" && (
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <h2 className="text-xl font-bold mb-4">
-                  Configure Email Template
+                  Configure Email & Qualification Prompts
                 </h2>
                 <div className="space-y-4">
-                  {/* Project Selection Dropdown */}
+                  {/* Project Selection */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select Project
@@ -181,19 +212,36 @@ const AIAgentPage: React.FC = observer(() => {
                       </div>
                     )}
                   </div>
+
+                  {/* Email Prompt */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Prompt Configuration
+                      Email Prompt
                     </label>
                     <textarea
-                      value={promptInput.prompt}
-                      onChange={handlePromptChange}
-                      className="w-full h-96 p-4 border rounded-lg font-mono text-sm"
-                      placeholder="Configure your AI prompt here..."
+                      value={promptInput.email_prompt}
+                      onChange={handleEmailPromptChange}
+                      className="w-full h-32 p-4 border rounded-lg font-mono text-sm"
+                      placeholder="Your email prompt..."
                     />
                   </div>
+
+                  {/* Qualification Prompt */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Qualification Prompt
+                    </label>
+                    <textarea
+                      value={promptInput.qualification_prompt}
+                      onChange={handleQualificationPromptChange}
+                      className="w-full h-32 p-4 border rounded-lg font-mono text-sm"
+                      placeholder="Your qualification prompt..."
+                    />
+                  </div>
+
+                  {/* Save Button */}
                   <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2"
                     onClick={handleSubmit}
                     disabled={
                       aiAgentStore.isGenerating || !promptInput.project_id
@@ -208,9 +256,12 @@ const AIAgentPage: React.FC = observer(() => {
                       <span>Save Template</span>
                     )}
                   </button>
+
+                  {/* Error Message */}
                   {aiAgentStore.error && (
                     <p className="text-red-500 mt-2">{aiAgentStore.error}</p>
-                  )}{" "}
+                  )}
+                  {/* Modals */}
                   <ErrorModal
                     error={aiAgentStore.error}
                     onClose={handleErrorClose}
@@ -220,6 +271,30 @@ const AIAgentPage: React.FC = observer(() => {
                     onClose={handleSuccessClose}
                   />
                 </div>
+              </div>
+            )}
+
+            {/* TEST TAB */}
+            {activeTab === "test" && (
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <h2 className="text-xl font-bold mb-4">Test Your Prompts</h2>
+                <p className="text-gray-600">
+                  Ovdje možeš napraviti testiranje prompta...
+                </p>
+                {/* Dodaj komponente i logiku za testiranje prompta po potrebi */}
+              </div>
+            )}
+
+            {/* GENERATE TAB */}
+            {activeTab === "generate" && (
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <h2 className="text-xl font-bold mb-4">
+                  Generate Campaign Emails
+                </h2>
+                <p className="text-gray-600">
+                  Ovdje možeš generirati emailove iz prompta i slati ih...
+                </p>
+                {/* Dodaj komponente i logiku za generiranje/ slanje emaila */}
               </div>
             )}
           </div>

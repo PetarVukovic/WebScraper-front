@@ -58,3 +58,13 @@ export interface CompaniesOutput {
   generated_email: string;
   email: string[];
 }
+export interface PromptInput {
+  email_prompt: string;
+  qualification_prompt: string;
+  project_id: number;
+}
+
+export interface PromptOutput extends PromptInput {
+  id: number;
+  created_at: Date;
+}
