@@ -9,8 +9,8 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white p-6 rounded-lg w-full max-w-2xl overflow-y-auto max-h-screen">
         <h2 className="text-xl font-semibold mb-4">Input Parameters Guide</h2>
         <div className="mb-4">
           <h3 className="text-lg font-medium">Search Terms</h3>
@@ -20,6 +20,23 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
             only a smaller count of non-overlapping search terms to optimize the
             scraping process. A big list of very similar search terms will
             increase the runtime without providing much additional data.
+            Description:{" "}
+            <strong>
+              Type what you want to search for as you would write it into the
+              Google Maps search bar, e.g. restaurant or pet shelter.
+            </strong>
+            <b>
+              {" "}
+              The search terms should be unique because each requires the same
+              processing time. Using similar terms is less efficient because of
+              overlap but can slightly increase the capture rate (e.g. bar vs
+              restaurant vs cafe). Putting location directly into search terms,
+              e.g. restaurant Pittsburgh, is not recommended because you will
+              only get max 120 results per search (Google's scrolling limit on a
+              single search) but it can be done for speed.
+            </b>{" "}
+            You can also use direct place IDs here in the format
+            place_id:ChIJ8_JBApXMDUcRDzXcYUPTGUY.
           </p>
           <ul className="list-disc pl-5 mt-2 text-gray-700">
             <li>

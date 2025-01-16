@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import type { Project, SearchHistoryResponse, CompaniesOutput } from "../types";
+import type { Project, CompaniesOutput } from "../types";
 
 import { fetchProjects, createProject } from "../api/auth_api";
 import { deleteProject } from "../api/project_api";
@@ -7,18 +7,9 @@ import { deleteProject } from "../api/project_api";
 class ProjectStore {
   projects: Project[] = [];
   selectedProject: Project | null = null;
-  projectData: { [key: number]: SearchHistoryResponse | null } = {};
   loading = false;
   deleteLoading = false;
   error: string | null = null;
-  isSidebarOpen = true;
-  googleMapsCompanies: CompaniesOutput[] = [];
-  scrapingInProgress = false;
-  companyContacts: CompaniesOutput[] = [];
-  fetchContactsLoading = false;
-  static googleMapsCompanies: any;
-  static companyContacts: any;
-  static loading: boolean;
 
   constructor() {
     makeAutoObservable(this);
@@ -66,7 +57,6 @@ class ProjectStore {
    */
   selectProject(project: Project | null) {
     console.log("[selectProject] Selected project:", project);
-    this.googleMapsCompanies = [];
     this.selectedProject = project;
   }
   async createNewProject(project: {
@@ -101,7 +91,6 @@ class ProjectStore {
       console.log("[deleteProject] Successfully deleted project:", projectId);
       runInAction(() => {
         this.projects = this.projects.filter((proj) => proj.id !== projectId);
-        delete this.projectData[projectId];
         if (this.selectedProject?.id === projectId) {
           this.selectedProject =
             this.projects.length > 0
@@ -127,17 +116,6 @@ class ProjectStore {
     if (this.selectedProject?.id === projectId) {
       this.selectedProject = this.projects.length > 0 ? this.projects[0] : null;
     }
-  }
-
-  // Spremanje i dohvaćanje podataka o projektu
-  saveProjectData(projectId: number, data: SearchHistoryResponse) {
-    console.log("[saveProjectData] projectId:", projectId, " data:", data);
-    this.projectData[projectId] = data;
-  }
-
-  getProjectData(projectId: number): SearchHistoryResponse | null {
-    console.log("[getProjectData] projectId:", projectId);
-    return this.projectData[projectId] || null;
   }
 }
 

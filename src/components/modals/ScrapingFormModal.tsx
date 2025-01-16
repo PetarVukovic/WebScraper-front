@@ -3,6 +3,7 @@ import { SearchHistoryCreate, SearchHistoryResponse } from "../../types";
 import { useRootStore } from "../../store/RootStoreContext";
 import { observer } from "mobx-react-lite";
 import { Spinner } from "../Spinner";
+import CategoryMultiSelect from "./CategoryMultiSelect";
 
 export const ScrapingFormModal: React.FC<{
   initialData?: SearchHistoryResponse | null;
@@ -224,24 +225,15 @@ export const ScrapingFormModal: React.FC<{
             <label className="block text-sm font-medium">
               Category Filter Words
             </label>
-            <select
-              multiple
-              value={scrapingParams.categoryFilterWords}
-              onChange={(e) => {
-                const selectedOptions = Array.from(
-                  e.target.selectedOptions
-                ).map((option) => option.value);
+            <CategoryMultiSelect
+              selectedCategories={scrapingParams.categoryFilterWords || []}
+              onChange={(newSelected) => {
                 setScrapingParams({
                   ...scrapingParams,
-                  categoryFilterWords: selectedOptions,
+                  categoryFilterWords: newSelected,
                 });
               }}
-              className="mt-1 block w-full p-2 border rounded"
-            >
-              <option value="software company">Software Company</option>
-              <option value="marketing agency">Marketing Agency</option>
-              <option value="e commerce agency">eCommerce Agency</option>
-            </select>
+            />
             <p className="text-sm text-gray-500 mt-1">
               Hold <code>Ctrl</code> (or <code>Cmd</code> on Mac) to select
               multiple options.

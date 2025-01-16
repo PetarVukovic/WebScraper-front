@@ -38,7 +38,7 @@ export const SearchHistoryTable: React.FC = observer(() => {
   useEffect(() => {
     if (!projectStore.selectedProject) return;
     searchHistoryStore.loadSearchHistory(projectStore.selectedProject.id);
-  }, [projectStore.selectedProject]);
+  }, [projectStore.selectedProject, projectStore.projects]);
 
   const renderSearchScope = (entry: SearchHistoryResponse) => {
     if (entry.locationQuery) {
