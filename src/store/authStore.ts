@@ -42,7 +42,7 @@ class AuthStore {
       this.user = response.user;
       this.error = null;
     } catch (err: any) {
-      this.error = err.message || "Login failed";
+      this.error = err.response.data["detail"] || "Login failed";
       this.isAuthenticated = false;
       throw err;
     }
@@ -54,7 +54,7 @@ class AuthStore {
       this.user = response.user;
       this.error = null;
     } catch (err: any) {
-      this.error = err.message || "Registration failed";
+      this.error = err.response.data["detail"] || "Registration failed";
       throw err;
     }
   }

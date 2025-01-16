@@ -2,8 +2,10 @@ import axios from "axios";
 import { authStore } from "../store/authStore";
 import { Project } from "../types";
 
+const productionURL = "https://formify-app-backend.onrender.com";
+const devURL = "http://127.0.0.1:8000";
 const apiClient = axios.create({
-  baseURL: "https://formify-app-backend.onrender.com",
+  baseURL: devURL,
 });
 
 apiClient.interceptors.request.use((config) => {
