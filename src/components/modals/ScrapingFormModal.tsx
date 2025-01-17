@@ -5,6 +5,7 @@ import { observer } from "mobx-react-lite";
 import { Spinner } from "../Spinner";
 import CategoryMultiSelect from "./CategoryMultiSelect";
 import KeywordInput from "./KeywordInput";
+import CountrySelect from "./CountrySelect";
 
 export const ScrapingFormModal: React.FC<{
   initialData?: SearchHistoryResponse | null;
@@ -195,18 +196,14 @@ export const ScrapingFormModal: React.FC<{
             {(searchMode === "city" || searchMode === "country") && (
               <div>
                 <label className="block text-sm font-medium">Country</label>
-                <input
-                  type="text"
+                <CountrySelect
                   value={scrapingParams.countryCode}
-                  onChange={(e) =>
+                  onChange={(newCountryCode) =>
                     setScrapingParams({
                       ...scrapingParams,
-                      countryCode: e.target.value,
+                      countryCode: newCountryCode,
                     })
                   }
-                  className="mt-1 block w-full p-2 border rounded"
-                  placeholder="e.g., Germany"
-                  required
                 />
               </div>
             )}
