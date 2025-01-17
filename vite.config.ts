@@ -4,18 +4,18 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // This allows the server to be accessible externally
-    port: 3000, // Ensure this matches the Docker configuration
-    strictPort: true, // Ensure it fails if the port is not available
+    host: true, // Omogućuje pristup serveru izvana
+    port: 3000, // Port za server
+    strictPort: true, // Osigurava prekid ako je port zauzet
     watch: {
-      usePolling: true, // Ensures changes are detected in Docker-mounted volumes
+      usePolling: true, // Prati promjene u Docker-mounted volumenima
     },
   },
   optimizeDeps: {
     exclude: ["lucide-react"],
   },
   build: {
-    outDir: "src/dist", // Ensure the build output is in the `dist` directory
-    sourcemap: true,
+    outDir: "dist", // Premjestite build u root direktorij
+    sourcemap: true, // Generira sourcemap za debugging
   },
 });

@@ -4,6 +4,7 @@ import { useRootStore } from "../../store/RootStoreContext";
 import { observer } from "mobx-react-lite";
 import { Spinner } from "../Spinner";
 import CategoryMultiSelect from "./CategoryMultiSelect";
+import KeywordInput from "./KeywordInput";
 
 export const ScrapingFormModal: React.FC<{
   initialData?: SearchHistoryResponse | null;
@@ -35,7 +36,7 @@ export const ScrapingFormModal: React.FC<{
     const inputValue = e.target.value;
     setScrapingParams({
       ...scrapingParams,
-      [fieldName]: inputValue.split(",").map((item) => item.trim()),
+      [fieldName]: inputValue.split(","),
     });
   };
 
@@ -157,7 +158,7 @@ export const ScrapingFormModal: React.FC<{
             </label>
             <input
               type="number"
-              defaultValue={9999999}
+              defaultValue={100}
               onBlur={(e) => {
                 const value = Number(e.target.value);
                 setScrapingParams({
@@ -213,16 +214,15 @@ export const ScrapingFormModal: React.FC<{
 
           <div>
             <label className="block text-sm font-medium">Search Keywords</label>
-            <input
-              type="text"
-              value={scrapingParams.searchStringsArray?.join(", ")}
-              onChange={(e) => handleInputChange(e, "searchStringsArray")}
-              className="mt-1 block w-full p-2 border rounded"
-              placeholder="e.g., restaurant, hotel"
+            <KeywordInput
+              keywords={scrapingParams.searchStringsArray || []}
+              onChange={(newKeywords) => {
+                setScrapingParams({
+                  ...scrapingParams,
+                  searchStringsArray: newKeywords,
+                });
+              }}
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Separate multiple keywords with commas
-            </p>
           </div>
 
           <div>

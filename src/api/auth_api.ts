@@ -2,10 +2,10 @@ import axios from "axios";
 import { authStore } from "../store/authStore";
 import { Project } from "../types";
 
-const productionURL = "https://formify-app-backend.onrender.com";
-const devURL = "http://127.0.0.1:8000";
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+console.log(baseURL);
 const apiClient = axios.create({
-  baseURL: devURL,
+  baseURL,
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -31,6 +31,7 @@ export const fetchProjects = async (): Promise<Project[]> => {
   console.log(response.data);
   return response.data;
 };
+
 export const createProject = async (project: {
   project_name: string;
   description: string;
@@ -38,4 +39,5 @@ export const createProject = async (project: {
   const response = await apiClient.post("/api/new-project", project);
   return response.data;
 };
+
 export default apiClient;
