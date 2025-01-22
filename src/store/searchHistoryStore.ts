@@ -3,7 +3,6 @@ import type { SearchHistoryCreate, SearchHistoryResponse } from "../types";
 import {
   deleteSearchHistory,
   fetchSearchHistory,
-  updateSearchHistory,
   insertSearchHistory,
 } from "../api/search_history_api";
 
@@ -42,28 +41,6 @@ class SearchHistoryStore {
       });
       console.error("[loadSearchHistory] Error:", err);
       return null;
-    } finally {
-      runInAction(() => {
-        this.loading = false;
-      });
-    }
-  }
-
-  async updateSearchHistory(params: SearchHistoryCreate): Promise<void> {
-    this.loading = true;
-    this.error = null;
-    try {
-      const response = await updateSearchHistory(params);
-      console.log("[updateSearchHistory] Response data:", response);
-      this.searchHistoryList = this.searchHistoryList.map((item) =>
-        item.id === response.id ? { ...item, ...response } : item
-      );
-    } catch (err) {
-      runInAction(() => {
-        this.error = "Failed to update search history.";
-      });
-      console.error("[updateSearchHistory] Error:", err);
-      throw err;
     } finally {
       runInAction(() => {
         this.loading = false;

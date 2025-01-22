@@ -3,7 +3,6 @@ import { SearchHistoryCreate, SearchHistoryResponse } from "../../types";
 import { useRootStore } from "../../store/RootStoreContext";
 import { observer } from "mobx-react-lite";
 import { Spinner } from "../Spinner";
-import CategoryMultiSelect from "./CategoryMultiSelect";
 import KeywordInput from "./KeywordInput";
 import CountrySelect from "./CountrySelect";
 
@@ -18,7 +17,6 @@ export const ScrapingFormModal: React.FC<{
     projectId: projectStore.selectedProject?.id || 0,
     maxCrawledPlacesPerSearch: initialData?.maxCrawledPlacesPerSearch || 0,
     locationQuery: initialData?.locationQuery || "",
-    categoryFilterWords: initialData?.categoryFilterWords || [],
     searchStringsArray: initialData?.searchStringsArray || [],
   });
 
@@ -29,17 +27,6 @@ export const ScrapingFormModal: React.FC<{
       setSearchMode("country");
     }
   }, [initialData]);
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    fieldName: string
-  ) => {
-    const inputValue = e.target.value;
-    setScrapingParams({
-      ...scrapingParams,
-      [fieldName]: inputValue.split(","),
-    });
-  };
 
   const handleSearchModeChange = (newMode: "country" | "city") => {
     setSearchMode(newMode);
@@ -63,7 +50,6 @@ export const ScrapingFormModal: React.FC<{
 
     // Ensure arrays are initialized even if empty
     params.searchStringsArray = params.searchStringsArray || [];
-    params.categoryFilterWords = params.categoryFilterWords || [];
 
     // Validate based on search mode
     if (searchMode === "country") {
@@ -217,21 +203,6 @@ export const ScrapingFormModal: React.FC<{
                 setScrapingParams({
                   ...scrapingParams,
                   searchStringsArray: newKeywords,
-                });
-              }}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">
-              Category Filter Words
-            </label>
-            <CategoryMultiSelect
-              selectedCategories={scrapingParams.categoryFilterWords || []}
-              onChange={(newSelected) => {
-                setScrapingParams({
-                  ...scrapingParams,
-                  categoryFilterWords: newSelected,
                 });
               }}
             />

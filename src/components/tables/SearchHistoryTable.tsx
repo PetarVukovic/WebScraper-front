@@ -53,7 +53,6 @@ export const SearchHistoryTable: React.FC = observer(() => {
     }
 
     if (entry.city && entry.countryCode) {
-      // Ako je korisnik odabrao specifičan grad unutar zemlje
       return (
         <div className="flex flex-col">
           <span className="font-medium">Location:</span>
@@ -139,9 +138,6 @@ export const SearchHistoryTable: React.FC = observer(() => {
                 Search Keywords
               </th>
               <th className="px-6 py-3 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Categories
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Created At
               </th>
               <th className="px-6 py-3 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -173,9 +169,6 @@ export const SearchHistoryTable: React.FC = observer(() => {
                   <td className="px-6 py-4">{renderSearchScope(entry)}</td>
                   <td className="px-6 py-4">
                     {entry.searchStringsArray?.join(", ") || "No search terms"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {entry.categoryFilterWords?.join(", ") || "No categories"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(entry.createdAt).toLocaleString() ||

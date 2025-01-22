@@ -18,13 +18,6 @@ export const fetchSearchHistory = async (
   }
 };
 
-export const updateSearchHistory = async (
-  params: SearchHistoryCreate
-): Promise<SearchHistoryResponse> => {
-  const response = await apiClient.post("/api/update-search-history", params);
-  return response.data;
-};
-
 export const deleteSearchHistory = async (
   id: string,
   project_id: number

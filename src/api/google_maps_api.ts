@@ -6,7 +6,7 @@ export const runGoogleMapsScraper = async (
   row: SearchHistoryResponse
 ): Promise<{ status: string; message: string }> => {
   const payload = {
-    categoryFilterWords: toJS(row.categoryFilterWords || []), // Lista stringova
+    // Lista stringova
     locationQuery: row.locationQuery?.trim() || undefined, // Trimanje praznih stringova, šalje undefined ako je prazno
     maxCrawledPlacesPerSearch: row.maxCrawledPlacesPerSearch || 0, // Broj
     searchStringsArray: toJS(row.searchStringsArray || []), // Lista stringova

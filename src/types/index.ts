@@ -28,7 +28,6 @@ export interface SearchHistoryCreate {
   city?: string; // Optional
   countryCode?: string; // Optional
   searchStringsArray?: string[]; // Optional
-  categoryFilterWords?: string[]; // Optional
   locationQuery?: string; // Marked as optional
 }
 
