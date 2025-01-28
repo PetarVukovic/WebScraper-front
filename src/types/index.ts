@@ -46,6 +46,14 @@ export interface PaginatedResponse<T> {
   page_size: number;
   total_pages: number;
 }
+export interface CompanyInputModel {
+  website: string;
+  context_data?: string;
+  is_qualified: boolean;
+  search_history_id: string;
+  generated_email?: string;
+  email?: string[] | string;
+}
 
 export interface CompaniesOutput {
   id?: string;

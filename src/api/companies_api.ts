@@ -1,4 +1,8 @@
-import { CompaniesOutput, PaginatedResponse } from "../types";
+import {
+  CompaniesOutput,
+  CompanyInputModel,
+  PaginatedResponse,
+} from "../types";
 import apiClient from "./auth_api";
 
 export const fetchCompaniesBySearchHistory = async (
@@ -9,6 +13,11 @@ export const fetchCompaniesBySearchHistory = async (
   const response = await apiClient.get(
     `/api/companies?search_history_id=${searchHistoryId}&page=${page}&page_size=${pageSize}`
   );
-  console.log("Ovo su companies", response.data);
   return response.data;
+};
+
+export const sendCompaniesToN8N = async (
+  companies: CompanyInputModel[]
+): Promise<void> => {
+  await apiClient.post("/api/send-webhook", companies);
 };

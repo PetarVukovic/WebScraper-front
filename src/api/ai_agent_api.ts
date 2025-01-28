@@ -1,6 +1,4 @@
-// api/ai_agent_api.ts
-
-import { PromptInput } from "../store/aiAgentStore";
+import { PromptInput } from "../types";
 import apiClient from "./auth_api";
 
 export const fetchPromptByProjectId = async (projectId: number) => {
