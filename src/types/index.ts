@@ -69,6 +69,7 @@ export interface PromptInput {
   email_prompt: string;
   qualification_prompt: string;
   project_id: number;
+  personalization_enabled: boolean;
 }
 
 export interface PromptOutput extends PromptInput {
