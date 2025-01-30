@@ -16,6 +16,8 @@ export const Auth = observer(() => {
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    authStore.checkAuthStatus();
+
     if (authStore.isAuthenticated) {
       navigate("/dashboard");
     }
@@ -23,28 +25,15 @@ export const Auth = observer(() => {
 
   useEffect(() => {
     emailRef.current?.focus();
-  }, [isLogin]);
-
-  const allowedEmails = [
-    "david.nordin@m-tab.se",
-    "gustav.lysell@m-tab.se",
-    "marcus.pettersson@m-tab.se",
-    "petar.vukovic@formify.eu",
-    "tommy.anzelius@m-tab.se",
-    "david.nordin@formify.se",
-  ];
+  }, [isLogin, errorMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     authStore.error = null;
+    setErrorMessage(null); // ✅ Resetujemo error poruku
 
     if (!email.trim() || !password.trim()) {
       setErrorMessage("Email and password are required");
-      return;
-    }
-
-    if (!allowedEmails.includes(email.trim())) {
-      setErrorMessage("You are not in Formify space");
       return;
     }
 
@@ -53,6 +42,7 @@ export const Auth = observer(() => {
     try {
       if (isLogin) {
         await authStore.login(email, password);
+        await authStore.checkAuthStatus();
         navigate("/dashboard");
       } else {
         await authStore.register(email, password);
@@ -61,7 +51,9 @@ export const Auth = observer(() => {
         setPassword("");
       }
     } catch (err) {
-      setErrorMessage(authStore.error || "An unknown error occurred.");
+      setErrorMessage(
+        authStore.error || "Invalid credentials. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

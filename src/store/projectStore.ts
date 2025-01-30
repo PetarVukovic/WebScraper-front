@@ -1,8 +1,10 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import type { Project, CompaniesOutput } from "../types";
-
-import { fetchProjects, createProject } from "../api/auth_api";
-import { deleteProject } from "../api/project_api";
+import type { Project } from "../types";
+import {
+  createProject,
+  deleteProject,
+  fetchProjects,
+} from "../api/project_api";
 
 class ProjectStore {
   projects: Project[] = [];

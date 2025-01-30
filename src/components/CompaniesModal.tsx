@@ -163,19 +163,24 @@ export const CompaniesModal: React.FC<CompaniesModalProps> = observer(
                 <table className="w-full border-collapse table-fixed">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="border px-4 py-2 text-left sticky top-0 bg-gray-50">
+                      {/* Website column - narrow, fixed width */}
+                      <th className="border px-3 py-2 text-left sticky top-0 bg-gray-50 w-[180px]">
                         Website
                       </th>
-                      <th className="border px-4 py-2 text-left sticky top-0 bg-gray-50">
+                      {/* Email column - medium width */}
+                      <th className="border px-3 py-2 text-left sticky top-0 bg-gray-50 w-[200px]">
                         Email
                       </th>
-                      <th className="border px-4 py-2 text-center sticky top-0 bg-gray-50">
+                      {/* Qualified column - smallest, fixed width */}
+                      <th className="border px-3 py-2 text-center sticky top-0 bg-gray-50 w-[100px]">
                         Qualified
                       </th>
-                      <th className="border px-4 py-2 text-left sticky top-0 bg-gray-50">
+                      {/* Context Data - flexible width */}
+                      <th className="border px-3 py-2 text-left sticky top-0 bg-gray-50 min-w-[200px] w-1/4">
                         Context Data
                       </th>
-                      <th className="border px-4 py-2 text-left sticky top-0 bg-gray-50">
+                      {/* Generated Email - flexible width */}
+                      <th className="border px-3 py-2 text-left sticky top-0 bg-gray-50 min-w-[200px] w-1/4">
                         Generated Email
                       </th>
                     </tr>
@@ -193,8 +198,10 @@ export const CompaniesModal: React.FC<CompaniesModalProps> = observer(
                                 : ""
                             }`}
                           >
-                            <td className="border px-4 py-2">
-                              {company.website || "N/A"}
+                            <td className="border px-3 py-2 truncate">
+                              <div className="truncate max-w-[180px]">
+                                {company.website || "N/A"}
+                              </div>
                             </td>
                             <td className="border px-4 py-2 break-words whitespace-pre-wrap">
                               <div className="relative">

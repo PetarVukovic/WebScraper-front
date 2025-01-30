@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { observer } from "mobx-react-lite";
+import { runInAction } from "mobx";
 import { SearchHistoryCreate, SearchHistoryResponse } from "../../types";
 import { useRootStore } from "../../store/RootStoreContext";
-import { observer } from "mobx-react-lite";
 import { Spinner } from "../Spinner";
 import KeywordInput from "./KeywordInput";
 import CountrySelect from "./CountrySelect";
@@ -10,33 +11,27 @@ export const ScrapingFormModal: React.FC<{
   initialData?: SearchHistoryResponse | null;
 }> = observer(({ initialData }) => {
   const { searchHistoryStore, projectStore, uiStore } = useRootStore();
-  const [searchMode, setSearchMode] = useState<"country" | "city">("city");
+  const [searchMode, setSearchMode] = useState<"country" | "city">(
+    initialData?.city && initialData?.countryCode ? "city" : "country"
+  );
+
   const [scrapingParams, setScrapingParams] = useState<SearchHistoryCreate>({
     city: initialData?.city || "",
     countryCode: initialData?.countryCode || "",
     projectId: projectStore.selectedProject?.id || 0,
-    maxCrawledPlacesPerSearch: initialData?.maxCrawledPlacesPerSearch || 0,
+    maxCrawledPlacesPerSearch: initialData?.maxCrawledPlacesPerSearch || 100,
     locationQuery: initialData?.locationQuery || "",
     searchStringsArray: initialData?.searchStringsArray || [],
   });
 
-  useEffect(() => {
-    if (initialData?.city && initialData?.countryCode) {
-      setSearchMode("city");
-    } else if (initialData?.countryCode && !initialData?.city) {
-      setSearchMode("country");
-    }
-  }, [initialData]);
-
-  const handleSearchModeChange = (newMode: "country" | "city") => {
+  const handleSearchModeChange = useCallback((newMode: "country" | "city") => {
     setSearchMode(newMode);
-    // Preserve existing values when switching modes
     setScrapingParams((prev) => ({
       ...prev,
       city: newMode === "city" ? prev.city : "",
       countryCode: newMode === "city" ? "" : prev.countryCode,
     }));
-  };
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,32 +41,17 @@ export const ScrapingFormModal: React.FC<{
       city: scrapingParams.city || undefined,
       countryCode: scrapingParams.countryCode || undefined,
       locationQuery: scrapingParams.locationQuery || undefined,
+      searchStringsArray: scrapingParams.searchStringsArray || [],
     };
 
-    // Ensure arrays are initialized even if empty
-    params.searchStringsArray = params.searchStringsArray || [];
+    if (searchMode === "country" && !params.countryCode) {
+      alert("Country is required for country-wide search.");
+      return;
+    }
 
-    // Validate based on search mode
-    if (searchMode === "country") {
-      if (!params.countryCode) {
-        alert("Country is required for country-wide search.");
-        return;
-      }
-      params.city = "";
-      params.locationQuery = "";
-    } else if (searchMode === "city") {
-      if (!params.city || !params.countryCode) {
-        alert("Both city and country are required for city search.");
-        return;
-      }
-      params.locationQuery = "";
-    } else if (searchMode === "location") {
-      if (!params.locationQuery) {
-        alert("Location query is required (format: City,Country).");
-        return;
-      }
-      params.city = "";
-      params.countryCode = "";
+    if (searchMode === "city" && (!params.city || !params.countryCode)) {
+      alert("Both city and country are required for city search.");
+      return;
     }
 
     if (
@@ -83,14 +63,22 @@ export const ScrapingFormModal: React.FC<{
     }
 
     try {
-      searchHistoryStore.loading = true;
+      runInAction(() => {
+        searchHistoryStore.loading = true;
+      });
+
       await searchHistoryStore.insertSearchHistory(params);
-      uiStore.isModalOpen = false;
+
+      runInAction(() => {
+        uiStore.isModalOpen = false;
+      });
     } catch (err) {
       console.error("handleSave Error:", err);
       alert("Operation failed.");
     } finally {
-      searchHistoryStore.loading = false;
+      runInAction(() => {
+        searchHistoryStore.loading = false;
+      });
     }
   };
 
@@ -103,7 +91,7 @@ export const ScrapingFormModal: React.FC<{
           <Spinner />
         </div>
       )}
-      <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+      <div className="bg-white p-6 rounded-lg w-full max-w-lg shadow-lg transition-transform transform scale-100">
         <h2 className="text-lg font-semibold mb-4">
           {uiStore.modalMode === "add" ? "Add New" : "Edit"} Scraping Parameters
         </h2>
@@ -115,23 +103,23 @@ export const ScrapingFormModal: React.FC<{
               Search Mode
             </label>
             <div className="flex gap-4">
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   value="country"
                   checked={searchMode === "country"}
                   onChange={() => handleSearchModeChange("country")}
-                  className="mr-2"
+                  className="mr-2 accent-blue-500"
                 />
                 Country-wide
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   value="city"
                   checked={searchMode === "city"}
                   onChange={() => handleSearchModeChange("city")}
-                  className="mr-2"
+                  className="mr-2 accent-blue-500"
                 />
                 City
               </label>
@@ -145,66 +133,85 @@ export const ScrapingFormModal: React.FC<{
             </label>
             <input
               type="number"
-              defaultValue={100}
+              value={scrapingParams.maxCrawledPlacesPerSearch || ""} // ✅ Ako nema vrednosti, prikaži prazan string
+              onChange={(e) => {
+                const val = e.target.value;
+
+                // ✅ Omogućava da polje bude potpuno prazno
+                if (val === "") {
+                  setScrapingParams((prev) => ({
+                    ...prev,
+                    maxCrawledPlacesPerSearch: 0, // Ili null, zavisno od backend-a
+                  }));
+                  return;
+                }
+
+                // ✅ Dozvoljava bilo koji broj bez trenutne validacije
+                setScrapingParams((prev) => ({
+                  ...prev,
+                  maxCrawledPlacesPerSearch: Number(val),
+                }));
+              }}
               onBlur={(e) => {
                 const value = Number(e.target.value);
-                setScrapingParams({
-                  ...scrapingParams,
-                  maxCrawledPlacesPerSearch: value > 0 ? value : 9999999,
-                });
+
+                // ✅ Ako je polje prazno, ostavi prazno, ne postavljaj na 0 ili 1
+                setScrapingParams((prev) => ({
+                  ...prev,
+                  maxCrawledPlacesPerSearch:
+                    isNaN(value) || value <= 0 ? 0 : value,
+                }));
               }}
-              className="mt-1 block w-full p-2 border rounded"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter max places..."
               min="1"
-              required
             />
           </div>
 
           {/* Search Parameters */}
-          <>
-            {searchMode === "city" && (
-              <div>
-                <label className="block text-sm font-medium">City</label>
-                <input
-                  type="text"
-                  value={scrapingParams.city}
-                  onChange={(e) =>
-                    setScrapingParams({
-                      ...scrapingParams,
-                      city: e.target.value,
-                    })
-                  }
-                  className="mt-1 block w-full p-2 border rounded"
-                  placeholder="e.g., Berlin"
-                  required
-                />
-              </div>
-            )}
-            {(searchMode === "city" || searchMode === "country") && (
-              <div>
-                <label className="block text-sm font-medium">Country</label>
-                <CountrySelect
-                  value={scrapingParams.countryCode}
-                  onChange={(newCountryCode) =>
-                    setScrapingParams({
-                      ...scrapingParams,
-                      countryCode: newCountryCode,
-                    })
-                  }
-                />
-              </div>
-            )}
-          </>
+          {searchMode === "city" && (
+            <div>
+              <label className="block text-sm font-medium">City</label>
+              <input
+                type="text"
+                value={scrapingParams.city}
+                onChange={(e) =>
+                  setScrapingParams((prev) => ({
+                    ...prev,
+                    city: e.target.value,
+                  }))
+                }
+                className="mt-1 block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Berlin"
+                required
+              />
+            </div>
+          )}
+          {(searchMode === "city" || searchMode === "country") && (
+            <div>
+              <label className="block text-sm font-medium">Country</label>
+              <CountrySelect
+                value={scrapingParams.countryCode}
+                onChange={(newCountryCode) =>
+                  setScrapingParams((prev) => ({
+                    ...prev,
+                    countryCode: newCountryCode,
+                  }))
+                }
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium">Search Keywords</label>
             <KeywordInput
-              keywords={scrapingParams.searchStringsArray || []}
-              onChange={(newKeywords) => {
-                setScrapingParams({
-                  ...scrapingParams,
+              keywords={scrapingParams.searchStringsArray!}
+              onChange={(newKeywords) =>
+                setScrapingParams((prev) => ({
+                  ...prev,
                   searchStringsArray: newKeywords,
-                });
-              }}
+                }))
+              }
             />
           </div>
 
@@ -212,14 +219,14 @@ export const ScrapingFormModal: React.FC<{
           <div className="flex justify-end gap-4 mt-6">
             <button
               type="button"
-              onClick={() => (uiStore.isModalOpen = false)}
-              className="px-4 py-2 border rounded hover:bg-gray-100"
+              onClick={() => runInAction(() => (uiStore.isModalOpen = false))}
+              className="px-4 py-2 border rounded hover:bg-gray-100 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition-all"
             >
               Save
             </button>

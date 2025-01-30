@@ -13,7 +13,6 @@ import {
 import { observer } from "mobx-react-lite";
 import { authStore } from "../store/authStore";
 import { useRootStore } from "../store/RootStoreContext";
-import { Spinner } from "./Spinner";
 
 export const Sidebar = observer(() => {
   const { projectStore } = useRootStore();
@@ -37,8 +36,9 @@ export const Sidebar = observer(() => {
     projectStore.loadProjects();
   }, [projectStore]);
 
-  const handleLogout = () => {
-    authStore.logout();
+  const handleLogout = async () => {
+    await authStore.logout();
+    navigate("/login");
   };
 
   if (!projectStore.projects || !Array.isArray(projectStore.projects)) {
